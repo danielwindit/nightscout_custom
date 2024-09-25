@@ -15,7 +15,7 @@ from homeassistant.const import ATTR_DATE, CONF_UNIT_OF_MEASUREMENT
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import ATTR_DELTA, ATTR_DEVICE, ATTR_DIRECTION, DOMAIN, MMOL_L
+from .const import ATTR_DELTA, ATTR_DEVICE, ATTR_DIRECTION, DOMAIN, MMOL_L, MG_DL
 
 SCAN_INTERVAL = timedelta(minutes=1)
 
@@ -31,15 +31,20 @@ async def async_setup_entry(
 ) -> None:
     """Set up the Glucose Sensor."""
     api = hass.data[DOMAIN][entry.entry_id]
-    unit = entry.data[CONF_UNIT_OF_MEASUREMENT]
-    async_add_entities([NightscoutSensor(api, "Blood Sugar", entry.unique_id, unit)], True)
+    unit = entry.data.get(CONF_UNIT_OF_MEASUREMENT, MG_DL)
+    async_add_entities(
+        [NightscoutSensor(api, "Blood Sugar", entry.unique_id, unit)], True
+    )
+
 
 class NightscoutSensor(SensorEntity):
     """Implementation of a Nightscout sensor."""
 
     _attr_icon = "mdi:cloud-question"
 
-    def __init__(self, api: NightscoutAPI, name: str, unique_id: str | None, unit: str) -> None:
+    def __init__(
+        self, api: NightscoutAPI, name: str, unique_id: str | None, unit: str
+    ) -> None:
         """Initialize the Nightscout sensor."""
         self.api = api
         self._attr_native_unit_of_measurement = unit
@@ -68,7 +73,6 @@ class NightscoutSensor(SensorEntity):
                 ATTR_DIRECTION: value.direction,
             }
             if self._attr_native_unit_of_measurement == MMOL_L:
-                # self._attr_native_value = value.sgv_mmol <- this does not work with the current 1.3.3 version of the api https://github.com/marciogranzotto/py-nightscout/blob/v1.3.3/py_nightscout/models.py#L82
                 self._attr_native_value = round(value.sgv * 0.0555, 1)
             else:
                 self._attr_native_value = value.sgv
