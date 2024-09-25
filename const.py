@@ -1,6 +1,6 @@
 """Constants for the Nightscout integration."""
 
-DOMAIN = "nightscout"
+DOMAIN = "nightscout_custom"
 
 ATTR_DEVICE = "device"
 ATTR_DELTA = "delta"
